@@ -17,7 +17,7 @@ public interface Memory extends IO, Loader, StackMemory {
     int STACK_SIZE_OF_MAIN_PAGE = 256; // for main stack
     int STACK_SIZE_OF_PAGE = STACK_SIZE_OF_THREAD_PAGE + STACK_SIZE_OF_MAIN_PAGE;
 
-    long MMAP_BASE = 0x12000000L;//0x1fffe180e , limited by MMIO_TRAP_ADDRESS
+    long MMAP_BASE =0x12000000L;//0x12000000L;//0x1fffe180e , limited by MMIO_TRAP_ADDRESS
 
     int allocateThreadIndex();
     void freeThreadIndex(int index);

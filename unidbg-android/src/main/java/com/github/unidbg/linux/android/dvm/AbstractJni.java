@@ -47,6 +47,10 @@ import java.util.UUID;
 public abstract class AbstractJni implements Jni {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractJni.class);
+    private String androidId="";
+    public void updateAndroidId(String _androidId){
+        this.androidId = _androidId;
+    }
 
     @Override
     public DvmObject<?> getStaticObjectField(BaseVM vm, DvmClass dvmClass, DvmField dvmField) {
@@ -265,6 +269,8 @@ public abstract class AbstractJni implements Jni {
     @Override
     public DvmObject<?> callObjectMethodV(BaseVM vm, DvmObject<?> dvmObject, String signature, VaList vaList) {
         switch (signature) {
+            case "java/lang/Class->getClassLoader()Ljava/lang/ClassLoader;":
+                return new ClassLoader(vm,signature);
             case "android/app/Application->getAssets()Landroid/content/res/AssetManager;":
                 return new AssetManager(vm, signature);
             case "android/app/Application->getClassLoader()Ljava/lang/ClassLoader;":
@@ -498,6 +504,13 @@ public abstract class AbstractJni implements Jni {
                     return new StringObject(vm, packageName);
                 }
                 break;
+                //temu的libriver加载执行的
+            } case "ri/bg->gad()Ljava/lang/String;": {
+                //33e23da7ec88e550
+                if(androidId.isEmpty())androidId = "33e23da7ec88e578";//默认设置一个
+                return new StringObject(vm,androidId); //对应的android_id 可以和设备保持相同即可
+            } case "java/lang/String->hashCode()I":{
+                return  new StringObject(vm,signature);
             }
         }
 
@@ -558,6 +571,9 @@ public abstract class AbstractJni implements Jni {
             case "java/util/Map->size()I":
                 Map<?, ?> map = (Map<?, ?>) dvmObject.getValue();
                 return map.size();
+            case "java/lang/String->hashCode()I":
+                String obj = (String) dvmObject.getValue();
+                return obj.hashCode();
         }
 
         throw new UnsupportedOperationException(signature);
