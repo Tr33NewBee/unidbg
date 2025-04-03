@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
@@ -229,6 +230,20 @@ public abstract class BaseVM implements VM, DvmClassFactory {
         }
     }
 
+    private ApkLibraryFile getLibraryFromApks(File parent,String soName) {
+        File []files =parent.listFiles(file -> file.getName().endsWith(".apk"));
+        //maybe nothing found
+        if(files == null) {return null;}
+        for (File file : files) {
+            ApkLibraryFile libraryFile = findLibrary(ApkFactory.createApk(file), soName);
+            if(libraryFile != null) {
+                return libraryFile;
+            }
+        }
+        return null;
+
+
+    }
     abstract byte[] loadLibraryData(Apk apk, String soName);
 
     @Override
@@ -239,11 +254,15 @@ public abstract class BaseVM implements VM, DvmClassFactory {
 
         ApkLibraryFile libraryFile = findLibrary(apk, soName);
         if (libraryFile == null) {
-            File split = new File(apk.getParentFile(), emulator.is64Bit() ? "config.arm64_v8a.apk" : "config.armeabi_v7a.apk");
+            File split = new File(apk.getParentFile(), emulator.is64Bit() ? "config.arm64_v8a.apk" : "config.armeabi_v7a.apk");//getLibraryFromApks(apk.getParentFile(),emulator.is64Bit());//
             if (split.canRead()) {
                 libraryFile = findLibrary(ApkFactory.createApk(split), soName);
             }
         }
+        if (libraryFile == null) {
+            libraryFile = getLibraryFromApks(apk.getParentFile(),soName);
+        }
+
         return libraryFile;
     }
 
